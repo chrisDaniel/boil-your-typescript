@@ -1,7 +1,7 @@
 
 //Step 1...
 //Configure Options
-module.exports = function(boilOptions, cb){
+module.exports = function(boilOptions){
 
   //Step 0...
   //Prep the Options

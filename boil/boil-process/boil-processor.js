@@ -9,7 +9,7 @@ const Tsf = require('../ts-reflect/ts-file');
 /*--------------------------------
 * Main Processing function
 *---------------------------------*/
-module.exports = function(options){
+module.exports = function(options, cb){
 
   //--------step - parse file---------//
   let step_parseInFile = function(file, oc){

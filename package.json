@@ -1,6 +1,6 @@
 {
   "name": "boil-your-typescript",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "scripts": {
     "test": "node ./testing/test.js"
   },
