@@ -6,9 +6,9 @@ const Tsp = require('../../ts-reflect/ts-props');
 * Required Exports
 * Tag and Boil function
 * ---------------------------------*/
-exports.tag = "getters";
+module.exports.tag = "getters";
 
-exports.boil = function(file, boilOpts){
+module.exports.boil = function(file, boilOpts){
 
   var content = "";
 

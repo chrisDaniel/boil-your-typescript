@@ -9,86 +9,56 @@ const Tsf = require('../ts-reflect/ts-file');
 /*--------------------------------
 * Main Processing function
 *---------------------------------*/
-module.exports.process = function(options){
+module.exports = function(options){
 
-  fsUtils.assembleFiles(options, files => {
-    files.forEach(file => {
-      processor_doFile(file);
+  //--------step - parse file---------//
+  let step_parseInFile = function(file, oc){
+
+    file.parse_start();
+
+    extractor.extract(file, rf => {
+      file.parse_end();
+      oc(rf);
     });
-  });
-}
-processor_doFile = function(file){
+  }
 
-  step_parseInFile(file, rf => {
+  //--------step - boil file---------//
+  let step_runBoilPlugins = function(file){
 
-    console.log("--------------------------");
-    console.log("Process : Parsing File : " + file.fileName);
-    help_logFile(file);
-    console.log("\n");
-
-    console.log("Process : Boiling : " + file.fileName);
-    step_runBoilPlugins(rf);
-    help_logFile(file);
-
-    console.log("Process : Writing Out : " + file.fileName);
-    step_generateCode(rf);
-
-    console.log("Process : File Boiled : " + file.fileName);
-    console.log("--------------------------");
-  });
-}
-step_parseInFile = function(file, oc){
-
-  file.parse_start();
-
-  extractor.extract(file, rf => {
-    file.parse_end();
-    oc(rf);
-  });
-}
-step_runBoilPlugins = function(file){
-
-    //case 1...
-    //no boil commands
-    let boilCommands = file.boilCommandsUsed;
-    if(boilCommands <= 0){
-      console.log("Process : No Boil Commands");
-      return;
-    }
-
-    //case 2...
-    //find and run plugins
-    var options = require('../commons/Options').getCurrent();
-
-    file.boil_start();
-    boilCommands.forEach(bc => {
-      var codeKey = bc.code;
-      var plugin = options.getPlugin(codeKey);
-      if(plugin){
-        console.log("Process : Boil Plugin - " + codeKey);
-        plugin.boil(file, bc.boilOpts);
+      //case 1...
+      //no boil commands
+      let boilCommands = file.boilCommandsUsed;
+      if(boilCommands <= 0){
+        console.log("Process : No Boil Commands");
+        return;
       }
-    });
-    file.boil_end();
-}
-step_generateCode = function(file){
 
-  var content = generator.generateBoiledCode(file);
-
-  try{
+      //case 2...
+      //find and run plugins
+      file.boil_start();
+      boilCommands.forEach(bc => {
+        var codeKey = bc.code;
+        var plugin = options.getPlugin(codeKey);
+        if(plugin) plugin.boil(file, bc.boilOpts);
+      });
+      file.boil_end();
+  }
+  let step_generateCode = function(file){
+    var content = generator.generateBoiledCode(file);
     fs.writeFileSync(file.outPath, content);
   }
-  catch(err){
-    console.error("Process : " + "Write Failure : " + err);
-  }
-}
 
+  let files = fsUtils.assembleFiles(options);
+  files.forEach(file => {
 
-/*-------------------
-* Helpers
-*---------------------*/
-help_logFile = function(file){
-  if(1==1) return;
-  console.log("File State: " );
-  console.log(JSON.stringify(file, null, 4));
+    console.log("parsing file: " + file.fileName);
+    step_parseInFile(file, rf => {
+      console.log("boiling file: " + file.fileName);
+      step_runBoilPlugins(rf);
+      console.log("writing boiled file: " + file.fileName);
+      step_generateCode(rf);
+    });
+    console.log("Process : File Boiled : " + file.fileName);
+    console.log("--------------------------");
+   });
 }

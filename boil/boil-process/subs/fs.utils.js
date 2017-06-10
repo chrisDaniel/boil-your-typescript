@@ -1,66 +1,39 @@
 const fs = require('fs');
 const Tsf = require('../../ts-reflect/ts-file');
 
-exports.assembleFiles = function(options, cb) {
+exports.assembleFiles = function(options) {
 
-  var srcDir = options.srcDir;
-  var outDir = options.outDir;
+  let srcDir = options.srcDir;
+  let outDir = options.outDir;
+  let returnData = [];
 
-  walk(srcDir, (err, results) =>{
+  let toExpand = [srcDir];
+  let files = [];
 
-    if(err){
-      console.log("file system err : " + err);
-      return [];
-    };
+  while(toExpand.length > 0) {
 
-    var returnData = [];
+    let currDir = toExpand.pop();
+    let genDir = currDir.replace(srcDir, outDir);
+    console.log("****currDir: " + currDir + " -> " + genDir);
+    let contents = fs.readdirSync(currDir);
 
-    results.forEach(file => {
-      var relPath = file.substr(srcDir.length);
-      var lastSlash = relPath.lastIndexOf("\/");
-      var relPostfix = relPath.substr(0, lastSlash);
+    contents.forEach(name => {
+      let fullPath = currDir + '/' + name;
+      let stat = fs.statSync(fullPath);
+      let finalPath = fullPath.replace(srcDir, outDir);
 
-      var fileName = relPath.substr(lastSlash+1);
-      var fileInDir = srcDir + relPostfix;
-      var fileOutDir = outDir + relPostfix;
-
-      if (!fs.existsSync(fileOutDir)){
-          fs.mkdirSync(fileOutDir);
-      }
-
-      var file = new Tsf.TsFile(fileName, fileInDir, fileOutDir);
-      returnData.push(file);
-    });
-
-    cb(returnData);
-  })
-}
-var walk = function(dir, done) {
-
-  var results = [];
-
-  fs.readdir(dir, function(err, list) {
-
-    if (err) return done(err);
-    var i = 0;
-
-    (function next() {
-
-      var file = list[i++];
-      if (!file) return done(null, results);
-      file = dir + '/' + file;
-
-      fs.stat(file, function(err, stat) {
-        if (stat && stat.isDirectory()) {
-          walk(file, function(err, res) {
-            results = results.concat(res);
-            next();
-          });
-        } else {
-          results.push(file);
-          next();
+      if(stat && stat.isDirectory()){
+        if(!fs.existsSync(finalPath)){
+          fs.mkdirSync(finalPath);
         }
-      });
-    })();
-  });
-};
+        toExpand.push(fullPath)
+      }
+      else if(stat && stat.isFile()){
+        console.log("****found file: " + name);
+        var file = new Tsf.TsFile(name, currDir, genDir);
+        files.push(file);
+      }
+    });
+  }
+  return files;
+}

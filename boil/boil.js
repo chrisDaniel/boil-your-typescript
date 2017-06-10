@@ -1,7 +1,7 @@
 
 //Step 1...
 //Configure Options
-module.exports = function(boilOptions){
+module.exports = function(boilOptions, cb){
 
   //Step 0...
   //Prep the Options
@@ -36,5 +36,5 @@ module.exports = function(boilOptions){
   //Run Boil Process
   Options.setCurrent(opts);
   const process = require('./boil-process/boil-processor');
-  process.process(opts);
+  process(opts);
 }

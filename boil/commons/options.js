@@ -1,4 +1,4 @@
-var current = {};
+let _bopts_current = {};
 
 module.exports = class Options{
 
@@ -61,9 +61,9 @@ module.exports = class Options{
     *  static operations
     * ----------------------- */
     static setCurrent(opts){
-      current = opts;
+      _bopts_current = opts ;
     }
     static getCurrent(){
-      return current;
+      return _bopts_current;
     }
 }
